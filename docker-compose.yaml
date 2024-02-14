@@ -1,0 +1,39 @@
+services:
+  # db:
+  #   image: postgres
+  #   volumes:
+  #     - ./data/db:/var/lib/postgresql/data
+  #   environment:
+  #     - POSTGRES_DB=postgres
+  #     - POSTGRES_USER=postgres
+  #     - POSTGRES_PASSWORD=postgres
+  node:
+    build:
+      dockerfile: ../dev.fe.Dockerfile
+      context: ./flash
+    # volumes:
+    #   - ./flash:/usr/src/app/
+    environment:
+      NODE_ENV: production
+      NEXTAUTH_SECRET: foobar
+      NEXTAUTH_URL: http://localhost:3000/
+      NEXTAUTH_BACKEND_URL: http://django:8000/api/
+    ports:
+      - "3000:3000"
+    # depends_on:
+    #   - django
+  django:
+    build:
+      context: .
+      dockerfile: dev.be.Dockerfile
+    command: >
+      sh -c "poetry run python manage.py migrate &&
+             poetry run python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - POSTGRES_NAME=postgres
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    # depends_on:
+    #   - db
